@@ -27,18 +27,37 @@
       ::-webkit-scrollbar { width: 6px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+      
+      #error-container {
+        display: none;
+        padding: 20px;
+        background: #fee2e2;
+        color: #991b1b;
+        margin: 20px;
+        border-radius: 8px;
+        font-family: monospace;
+        white-space: pre-wrap;
+      }
+      #loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        color: #4f46e5;
+        font-weight: bold;
+      }
     </style>
 
-    <!-- Import Map to load libraries from CDN -->
+    <!-- Import Map with fixed dependencies to prevent version conflicts -->
     <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@18.2.0",
     "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-    "lucide-react": "https://esm.sh/lucide-react@0.263.1",
+    "lucide-react": "https://esm.sh/lucide-react@0.263.1?external=react",
     "date-fns": "https://esm.sh/date-fns@2.30.0",
     "date-fns/locale": "https://esm.sh/date-fns@2.30.0/locale",
-    "recharts": "https://esm.sh/recharts@2.12.0",
+    "recharts": "https://esm.sh/recharts@2.12.0?external=react,react-dom",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
     "react/": "https://esm.sh/react@^19.2.4/",
     "date-fns/": "https://esm.sh/date-fns@^4.1.0/"
@@ -47,6 +66,19 @@
 </script>
   </head>
   <body>
+    <!-- Global Error Handler to show errors on screen -->
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        document.getElementById('loading').style.display = 'none';
+        const errorContainer = document.getElementById('error-container');
+        errorContainer.style.display = 'block';
+        errorContainer.textContent = 'エラーが発生しました:\n' + message + '\n\n場所: ' + source + ':' + lineno;
+        console.error(error);
+      };
+    </script>
+
+    <div id="loading">アプリを読み込み中...</div>
+    <div id="error-container"></div>
     <div id="root"></div>
 
     <!-- MAIN APPLICATION SCRIPT -->
@@ -67,6 +99,9 @@
         CartesianGrid, Tooltip, ReferenceLine, Legend 
       } from 'recharts';
 
+      // Hide loading spinner when script starts executing
+      // However, React render is async, so we'll hide it in useEffect of App or after render
+      
       // --- TYPES & CONSTANTS ---
       
       const SCORE_COLORS = {
@@ -605,6 +640,9 @@
 
         useEffect(() => {
           setLogs(getLogs());
+          // Hide loading spinner
+          const loader = document.getElementById('loading');
+          if (loader) loader.style.display = 'none';
         }, []);
 
         const handleDateClick = (date) => {
